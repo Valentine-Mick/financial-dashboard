@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scenario C: Complete Live Financial Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Full CSS styling for professional dark theme dashboard */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #060712 0%, #0f0f23 100%);
+      color: #f5f5fa; line-height: 1.6; min-height: 100vh;
+    }
+    body { padding: 24px; }
+    .page {
+      max-width: 1200px; margin: 0 auto; background: rgba(20, 21, 41, 0.95);
+      border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      padding: 36px; backdrop-filter: blur(20px);
+    }
+    .page-header {
+      display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 24px;
+    }
+    @media (min-width: 768px) {
+      .page-header { flex-direction: row; justify-content: space-between; align-items: flex-start; }
+    }
+    .title-block { max-width: 700px; }
+    .scenario-chip {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px;
+      font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+      border: 1px solid rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.08);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.1);
+    }
+    .scenario-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    }
+    .scenario-title { 
+      font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #f5f5fa, #e5e7ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 8px; letter-spacing: -0.02em;
+    }
+    .scenario-subtitle { 
+      font-size: 16px; color: #cbd5f5; opacity: 0.9; font-weight: 400; 
+    }
+    .status-container {
+      text-align: right;
+    }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 20px;
+      background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.4);
+      font-size: 13px; color: #bbf7d0; text-transform: uppercase; letter-spacing: 0.08em; 
+      font-weight: 600; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+    }
+    .status-dot { 
+      width: 10px; height: 10px; border-radius: 50%; 
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.6), inset 0 0 4px rgba(255,255,255,0.2);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
+    }
+    .meta { font-size: 13px; color: #a5b4fc; opacity: 0.85; margin-top: 4px; }
+    section { margin-bottom: 36px; }
+    .section-header { 
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px; 
+    }
+    .section-pill { 
+      width: 6px; height: 24px; background: linear-gradient(180deg, #60a5fa, #a855f7); 
+      border-radius: 4px; flex-shrink: 0;
+    }
+    h2 { 
+      font-size: 20px; font-weight: 700; color: #f5f5fa; letter-spacing: 0.02em; 
+      margin: 0; text-transform: uppercase; font-size: 18px;
+    }
+    .chart-container {
+      position: relative; height: 360px; margin: 20px 0; border-radius: 16px; 
+      background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(148, 163, 255, 0.2);
+      padding: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+    }
+    .chart-container.full-width { height: 420px; }
+    .table-container {
+      margin: 20px 0; border-radius: 16px; overflow: hidden;
+      background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(148, 163, 255, 0.25);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    .table-container table {
+      width: 100%; border-collapse: collapse; font-size: 14px;
+    }
+    .table-container thead th {
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.9), rgba(55, 65, 81, 0.95));
+      color: #f0f4ff; padding: 16px; text-align: left; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; font-size: 12px;
+      border-bottom: 1px solid rgba(148, 163, 255, 0.3);
+    }
+    .table-container tbody tr:hover { background: rgba(59, 130, 246, 0.1); }
+    .table-container tbody tr:nth-child(even) { background: rgba(20, 21, 41, 0.5); }
+    .table-container td { padding: 16px; color: #e5e7ff; border-bottom: 1px solid rgba(31, 41, 55, 0.6); }
+    .table-container tbody tr:last-child td { border-bottom: none; }
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 24px; margin: 24px 0; }
+    @media (min-width: 900px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .success-state {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 163, 74, 0.1));
+      border: 1px solid rgba(34, 197, 94, 0.4); color: #bbf7d0; 
+      padding: 20px; border-radius: 16px; margin: 32px 0; text-align: center;
+      font-weight: 500; box-shadow: 0 8px 32px rgba(34, 197, 94, 0.15);
+    }
+    .error-state {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+      border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; 
+      padding: 20px; border-radius: 16px; margin: 20px 0; text-align: center;
+    }
+    .footer-note { 
+      margin-top: 40px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 13px; color: #9ca3af; opacity: 0.8; text-align: center;
+      font-weight: 400;
+    }
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+      .page { padding: 24px 20px; border-radius: 16px; }
+      .scenario-title { font-size: 26px; }
+      .chart-container, .chart-container.full-width { height: 300px; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="page-header">
+      <div class="title-block">
+        <div class="scenario-chip"><span class="scenario-dot"></span> Scenario C · Complete Live Dashboard</div>
+        <h1 class="scenario-title">Financial Optimization Plan</h1>
+        <p class="scenario-subtitle">
+          Sell Investment Flat + Late Migration (Dec 2026/Jan 2027) | Live data from Google Sheets
+        </p>
+      </div>
+      <div class="status-container">
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span> <span id="statusText">Initializing...</span>
+        </div>
+        <p class="meta">Last sync: <span id="lastUpdated">--:--</span> | Next: <span id="nextSync">--:--</span></p>
+      </div>
+    </header>
+
+    <div id="connectionStatus"></div>
+
+    <!-- Charts -->
+    <section>
+      <div class="section-header"><div class="section-pill"></div><h2>Net Worth Growth Trajectory (R Millions)</h2></div>
+      <div class="chart-container full-width"><canvas id="netWorthChart"></canvas></div>
+    </section>
+    <div class="grid-2">
+      <section>
+        <div class="section-header"><div class="section-pill"></div><h2>Capital Deployment</h2></div>
+        <div class="chart-container"><canvas id="capitalFlowChart"></canvas></div>
+      </section>
+      <section>
+        <div class="section-header"><div class="section-pill"></div><h2>Asset Allocation</h2></div>
+        <div class="chart-container"><canvas id="allocationChart"></canvas></div>
+      </section>
+    </div>
+    <section>
+      <div class="section-header"><div class="section-pill"></div><h2>Monthly Cash Flow (2027)</h2></div>
+      <div class="chart-container"><canvas id="cashFlowChart"></canvas></div>
+    </section>
+
+    <!-- Tables -->
+    <section id="annualPassiveSection">
+      <div class="section-header"><div class="section-pill"></div><h2>Annual Passive Income Progression</h2></div>
+      <div class="table-container" id="annualPassiveTable"></div>
+    </section>
+    <section id="currentAssetsSection">
+      <div class="section-header"><div class="section-pill"></div><h2>Current Assets Snapshot</h2></div>
+      <div class="table-container" id="currentAssetsTable"></div>
+    </section>
+    <section id="phaseTimelineSection">
+      <div class="section-header"><div class="section-pill"></div><h2>Implementation Timeline</h2></div>
+      <div class="table-container" id="phaseTimelineTable"></div>
+    </section>
+    <section id="keyMetricsSection">
+      <div class="section-header"><div class="section-pill"></div><h2>Key Metrics & Assumptions</h2></div>
+      <div class="table-container" id="keyMetricsTable"></div>
+    </section>
+
+    <div class="success-state">
+      ✅ <strong>LIVE DASHBOARD ACTIVE</strong><br>
+      All charts & tables sync every 60 seconds<br>
+      Update your Google Sheet to see changes live here.
+    </div>
+    <p class="footer-note">Sheet ID: 1AywQP0yNRa_QOAqAkfTmjOS_nMbsoB2X_Rc6bhgNx7M | Auto-refresh every 60 seconds</p>
+  </main>
+
+  <script>
+    const SHEET_ID = '1AywQP0yNRa_QOAqAkfTmjOS_nMbsoB2X_Rc6bhgNx7M';
+    const SHEET_TABS = [
+      { name: 'Net Worth Data', chartId: 'netWorthChart', type: 'line' },
+      { name: 'Capital Flow', chartId: 'capitalFlowChart', type: 'doughnut' },
+      { name: 'Asset Allocation', chartId: 'allocationChart', type: 'pie' },
+      { name: 'Monthly Cash Flow', chartId: 'cashFlowChart', type: 'bar' },
+      { name: 'Annual Passive Income', tableId: 'annualPassiveTable' },
+      { name: 'Current Assets', tableId: 'currentAssetsTable' },
+      { name: 'Phase Timeline', tableId: 'phaseTimelineTable' },
+      { name: 'Key Metrics', tableId: 'keyMetricsTable' }
+    ];
+
+    let charts = {};
+    let sheetData = {};
+
+    aasync function fetchSheetData(sheetName) {
+      const url = `https://script.google.com/macros/s/AKfycbxzVp6h15bcFUcdlxVW0jM_ZvnL9MrEXAdP4ihK4dglVA_pa-QhlYlvYOab_Zw-mmk-jA/exec?sheet=${encodeURIComponent(sheetName)}`;
+      try {
+        const response = await fetch(url, {
+          mode: 'cors',
+        });
+        if (!response.ok) {
+          console.warn('HTTP error', response.status, 'for sheet', sheetName);
+          return null;
+        }
+        const json = await response.json(); // 2D array
+        return json;
+      } catch (err) {
+        console.warn(`Failed to load "${sheetName}" via Apps Script:`, err);
+        return null;
+      }
+    }
+
+    function parseChartData(data, type, tabName) {
+      if (!data || data.length < 2) return null;
+      if (tabName === 'Net Worth Data') {
+        const labels = [], investments = [], netWorth = [];
+        for (let i = 1; i < data.length; i++) {
+          if (data[i].length >= 3) {
+            labels.push(data[i][0]);
+            investments.push(parseFloat(data[i][1])/1e6 || 0);
+            netWorth.push(parseFloat(data[i][2])/1e6 || 0);
+          }
+        }
+        return {labels, investments, netWorth};
+      }
+      let labels = [], values = [];
+      for (let i = 1; i < data.length; i++) {
+        if (data[i].length > 1) {
+          labels.push(data[i][0]);
+          values.push(parseFloat(data[i][1])||0);
+        }
+      }
+      return {labels, values};
+    }
+
+    function renderTable(data, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container || !data || data.length === 0) return;
+      let html = '<table><thead><tr>';
+      data[0].forEach(head => html += `<th>${head}</th>`);
+      html += '</tr></thead><tbody>';
+      for (let i=1; i<data.length; i++) {
+        html += '<tr>';
+        data[i].forEach(cell => html += `<td>${cell || ''}</td>`);
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function createOrUpdateChart(chartId, data, type) {
+      const ctx = document.getElementById(chartId)?.getContext('2d');
+      if (!ctx) return;
+      if (charts[chartId]) charts[chartId].destroy();
+      const colors = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'];
+      let config;
+      if (type === 'line' && data.investments) {
+        config = {
+          type: 'line',
+          data: {
+            labels: data.labels,
+            datasets: [
+              { label: 'Investments (R M)', data: data.investments, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4, borderWidth: 3 },
+              { label: 'Net Worth (R M)', data: data.netWorth, borderColor: '#3b82f6', tension: 0.4, borderWidth: 3 }
+            ]
+          },
+          options: {responsive:true, maintainAspectRatio:false}
+        };
+      } else {
+        config = {
+          type: type,
+          data: {labels: data.labels, datasets: [{data: data.values, backgroundColor: data.values.map((_, i) => colors[i % colors.length]), borderWidth: 2, borderColor: '#1f2937'}]},
+          options: {responsive:true, maintainAspectRatio:false}
+        };
+      }
+      charts[chartId] = new Chart(ctx, config);
+    }
+
+    async function syncSheetData() {
+      const statusText = document.getElementById('statusText');
+      statusText.textContent = 'Syncing...';
+      let count = 0;
+      for (const tab of SHEET_TABS) {
+        const data = await fetchSheetData(tab.name);
+        if (data) {
+          sheetData[tab.name] = data;
+          count++;
+          if (tab.chartId) {
+            const parsed = parseChartData(data, tab.type, tab.name);
+            if(parsed) createOrUpdateChart(tab.chartId, parsed, tab.type);
+          }
+          if (tab.tableId) renderTable(data, tab.tableId);
+        }
+      }
+      statusText.textContent = `✅ Live (${count}/${SHEET_TABS.length} sheets loaded)`;
+      const now = new Date();
+      document.getElementById('lastUpdated').textContent = now.toLocaleTimeString();
+      document.getElementById('nextSync').textContent = new Date(now.getTime() + 60000).toLocaleTimeString();
+      document.getElementById('connectionStatus').innerHTML = `<div class="success-state"><strong>FULL SYNC COMPLETE</strong> | ${count}/${SHEET_TABS.length} datasets loaded<br>Next sync: ${new Date(now.getTime() + 60000).toLocaleTimeString()}</div>`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      syncSheetData();
+      setInterval(syncSheetData, 60000);
+    });
+  </script>
+</body>
+</html>
